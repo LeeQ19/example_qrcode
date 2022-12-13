@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -27,23 +30,29 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isDetected = false;
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
       ),
       body: MobileScanner(
-        allowDuplicates: false,
+        allowDuplicates: true,
         onDetect: (barcode, args) {
+          if (isDetected) return;
           if (barcode.rawValue == null) {
             debugPrint('Failed to scan Barcode');
-          } else {
-            final String code = barcode.rawValue!;
-            debugPrint('Barcode found! $code');
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            SnackBar(
-              content: Text('Barcode found! $code'),
-            );
+            return;
           }
+          isDetected = true;
+          final String code = barcode.rawValue!;
+          debugPrint('Barcode found! $code');
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          final snackBar = SnackBar(content: Text('Barcode found! $code'));
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          Timer(const Duration(seconds: 3), (() {
+            debugPrint('Timer is over.');
+            isDetected = false;
+          }));
         },
       ),
     );
